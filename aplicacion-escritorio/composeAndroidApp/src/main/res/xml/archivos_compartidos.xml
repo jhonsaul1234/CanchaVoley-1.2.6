@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Archivos que la app comparte (comprobantes en PDF, caja y reportes en Excel): solo su carpeta temporal -->
+<paths>
+    <cache-path name="exportados" path="exportados/" />
+</paths>

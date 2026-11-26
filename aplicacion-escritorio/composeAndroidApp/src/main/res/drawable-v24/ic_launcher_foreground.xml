@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- CanchaVoley: pelota de vóley (mismo trazo que el logo de la app), dentro de la zona segura de 66dp -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.83"
+        android:strokeLineCap="round"
+        android:pathData="M28.00,54.00 a26.00,26.00 0 1,0 52.00,0 a26.00,26.00 0 1,0 -52.00,0" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.83"
+        android:strokeLineCap="round"
+        android:pathData="M54.00,54.00 C39.34,48.66 47.61,30.15 67.00,31.49" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.83"
+        android:strokeLineCap="round"
+        android:pathData="M54.00,54.00 C65.95,43.97 77.85,60.39 67.00,76.51" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.83"
+        android:strokeLineCap="round"
+        android:pathData="M54.00,54.00 C56.71,69.37 36.54,71.46 28.00,54.00" />
+</vector>

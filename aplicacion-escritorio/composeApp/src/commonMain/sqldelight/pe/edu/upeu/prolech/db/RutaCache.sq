@@ -1,0 +1,8 @@
+-- Tabla heredada de ProLech. CanchaVoley no la usa: se conserva solo para que las bases locales
+-- creadas antes (etapa 0) sigan igual y las migraciones 1.sqm-5.sqm no cambien. Sin consultas.
+
+CREATE TABLE RutaCacheEntity (
+    id             INTEGER NOT NULL PRIMARY KEY,
+    json           TEXT    NOT NULL,
+    actualizadoEn  INTEGER NOT NULL
+);

@@ -1,0 +1,51 @@
+-- Migración v5 → v6: tablas de CanchaVoley (copia local para trabajar sin internet).
+CREATE TABLE IF NOT EXISTS CvDato (
+    clave TEXT NOT NULL PRIMARY KEY,
+    valor TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS CvCliente (
+    uuid       TEXT    NOT NULL PRIMARY KEY,
+    id         INTEGER NOT NULL DEFAULT 0,
+    nombre     TEXT    NOT NULL,
+    telefono   TEXT    NOT NULL,
+    json       TEXT    NOT NULL,
+    estadoSync TEXT    NOT NULL DEFAULT 'SINCRONIZADO'
+);
+
+CREATE INDEX IF NOT EXISTS CvCliente_telefono ON CvCliente(telefono);
+
+CREATE TABLE IF NOT EXISTS CvReserva (
+    uuid        TEXT    NOT NULL PRIMARY KEY,
+    canchaId    INTEGER NOT NULL,
+    clienteUuid TEXT,
+    inicioMs    INTEGER NOT NULL,
+    finMs       INTEGER NOT NULL,
+    estado      TEXT    NOT NULL,
+    json        TEXT    NOT NULL,
+    estadoSync  TEXT    NOT NULL DEFAULT 'SINCRONIZADO',
+    errorSync   TEXT
+);
+
+CREATE INDEX IF NOT EXISTS CvReserva_inicio ON CvReserva(canchaId, inicioMs);
+
+CREATE TABLE IF NOT EXISTS CvPago (
+    uuid        TEXT NOT NULL PRIMARY KEY,
+    reservaUuid TEXT NOT NULL,
+    pagadoMs    INTEGER NOT NULL DEFAULT 0,
+    json        TEXT NOT NULL,
+    estadoSync  TEXT NOT NULL DEFAULT 'SINCRONIZADO'
+);
+
+CREATE INDEX IF NOT EXISTS CvPago_reserva ON CvPago(reservaUuid);
+
+CREATE TABLE IF NOT EXISTS CvOperacion (
+    opUuid      TEXT    NOT NULL PRIMARY KEY,
+    tipo        TEXT    NOT NULL,
+    entidadUuid TEXT,
+    datosJson   TEXT    NOT NULL,
+    creadaEn    TEXT    NOT NULL,
+    orden       INTEGER NOT NULL,
+    intentos    INTEGER NOT NULL DEFAULT 0,
+    ultimoError TEXT
+);

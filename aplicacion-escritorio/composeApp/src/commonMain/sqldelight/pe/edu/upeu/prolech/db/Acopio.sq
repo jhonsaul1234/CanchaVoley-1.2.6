@@ -1,0 +1,29 @@
+-- Tabla heredada de ProLech. CanchaVoley no la usa: se conserva solo para que las bases locales
+-- creadas antes (etapa 0) sigan igual y las migraciones 1.sqm-5.sqm no cambien. Sin consultas.
+
+CREATE TABLE AcopioEntity (
+    id             TEXT    NOT NULL PRIMARY KEY,
+    ganaderoId     INTEGER NOT NULL,
+    ganaderoNombre TEXT    NOT NULL,
+    litros         REAL    NOT NULL,
+    porcentajeAgua REAL    NOT NULL,
+    densidad       REAL    NOT NULL,
+    -- 'APROBADO' | 'OBSERVADO' | 'RECHAZADO'
+    estadoCalidad  TEXT    NOT NULL,
+    -- Timestamp en ms: resolución de conflictos Last-Write-Wins
+    actualizadoEn  INTEGER NOT NULL,
+    -- 'SINCRONIZADO' | 'PENDIENTE_CREAR' | 'PENDIENTE_ACTUALIZAR' | 'PENDIENTE_ELIMINAR'
+    estadoSync     TEXT    NOT NULL DEFAULT 'SINCRONIZADO',
+    -- Motivo por el que el servidor rechazó el registro (no se reintenta hasta corregirlo)
+    errorSync      TEXT,
+    -- % de grasa leído del Lactoscan (opcional)
+    grasa          REAL,
+    -- Foto de evidencia guardada en el celular y si ya se subió al servidor
+    fotoLocal      TEXT,
+    fotoSubida     INTEGER NOT NULL DEFAULT 0,
+    -- Lo que el chofer vio a simple vista: normal, olor, color, grumos, caliente, otro
+    observacion     TEXT,
+    observacionNota TEXT,
+    -- Frasco de muestra sorpresa que la planta pidió en esta entrega
+    muestraCodigo   TEXT
+);

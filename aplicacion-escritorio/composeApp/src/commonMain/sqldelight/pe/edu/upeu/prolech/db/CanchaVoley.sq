@@ -1,0 +1,151 @@
+-- CanchaVoley: copia local (escritorio y Android) para trabajar sin internet.
+-- Cada fila guarda el JSON completo que envía el servidor más las columnas por las que se busca.
+-- estadoSync: SINCRONIZADO | PENDIENTE (cambio local aún no confirmado por el servidor) | RECHAZADA
+
+CREATE TABLE CvDato (
+    clave TEXT NOT NULL PRIMARY KEY,
+    valor TEXT NOT NULL
+);
+
+CREATE TABLE CvCliente (
+    uuid       TEXT    NOT NULL PRIMARY KEY,
+    id         INTEGER NOT NULL DEFAULT 0,
+    nombre     TEXT    NOT NULL,
+    telefono   TEXT    NOT NULL,
+    json       TEXT    NOT NULL,
+    estadoSync TEXT    NOT NULL DEFAULT 'SINCRONIZADO'
+);
+
+CREATE INDEX CvCliente_telefono ON CvCliente(telefono);
+
+CREATE TABLE CvReserva (
+    uuid        TEXT    NOT NULL PRIMARY KEY,
+    canchaId    INTEGER NOT NULL,
+    clienteUuid TEXT,
+    inicioMs    INTEGER NOT NULL,
+    finMs       INTEGER NOT NULL,
+    estado      TEXT    NOT NULL,
+    json        TEXT    NOT NULL,
+    estadoSync  TEXT    NOT NULL DEFAULT 'SINCRONIZADO',
+    errorSync   TEXT
+);
+
+CREATE INDEX CvReserva_inicio ON CvReserva(canchaId, inicioMs);
+
+CREATE TABLE CvPago (
+    uuid        TEXT NOT NULL PRIMARY KEY,
+    reservaUuid TEXT NOT NULL,
+    pagadoMs    INTEGER NOT NULL DEFAULT 0,
+    json        TEXT NOT NULL,
+    estadoSync  TEXT NOT NULL DEFAULT 'SINCRONIZADO'
+);
+
+CREATE INDEX CvPago_reserva ON CvPago(reservaUuid);
+
+CREATE TABLE CvOperacion (
+    opUuid      TEXT    NOT NULL PRIMARY KEY,
+    tipo        TEXT    NOT NULL,
+    entidadUuid TEXT,
+    datosJson   TEXT    NOT NULL,
+    creadaEn    TEXT    NOT NULL,
+    orden       INTEGER NOT NULL,
+    intentos    INTEGER NOT NULL DEFAULT 0,
+    ultimoError TEXT
+);
+
+-- ── Datos sueltos (sesión, catálogo, cursor, uuid del equipo) ───────────────
+leerDato:
+SELECT valor FROM CvDato WHERE clave = ?;
+
+guardarDato:
+INSERT OR REPLACE INTO CvDato(clave, valor) VALUES (?, ?);
+
+borrarDato:
+DELETE FROM CvDato WHERE clave = ?;
+
+observarDato:
+SELECT valor FROM CvDato WHERE clave = ?;
+
+-- ── Clientes ────────────────────────────────────────────────────────────────
+guardarCliente:
+INSERT OR REPLACE INTO CvCliente(uuid, id, nombre, telefono, json, estadoSync) VALUES (?, ?, ?, ?, ?, ?);
+
+clientePorUuid:
+SELECT * FROM CvCliente WHERE uuid = ?;
+
+clientePorTelefono:
+SELECT * FROM CvCliente WHERE telefono = ? LIMIT 1;
+
+buscarClientes:
+SELECT * FROM CvCliente
+WHERE nombre LIKE '%' || :texto || '%' OR telefono LIKE '%' || :texto || '%'
+ORDER BY nombre COLLATE NOCASE LIMIT 200;
+
+borrarCliente:
+DELETE FROM CvCliente WHERE uuid = ?;
+
+-- ── Reservas ────────────────────────────────────────────────────────────────
+guardarReserva:
+INSERT OR REPLACE INTO CvReserva(uuid, canchaId, clienteUuid, inicioMs, finMs, estado, json, estadoSync, errorSync)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+reservaPorUuid:
+SELECT * FROM CvReserva WHERE uuid = ?;
+
+reservasEntre:
+SELECT * FROM CvReserva WHERE finMs > :desde AND inicioMs < :hasta ORDER BY inicioMs;
+
+reservasDeCliente:
+SELECT * FROM CvReserva WHERE clienteUuid = ? ORDER BY inicioMs DESC;
+
+reservasTodas:
+SELECT * FROM CvReserva ORDER BY inicioMs DESC LIMIT 500;
+
+cambiarClienteDeReservas:
+UPDATE CvReserva SET clienteUuid = :nuevo WHERE clienteUuid = :anterior;
+
+-- ── Pagos ───────────────────────────────────────────────────────────────────
+guardarPago:
+INSERT OR REPLACE INTO CvPago(uuid, reservaUuid, pagadoMs, json, estadoSync) VALUES (?, ?, ?, ?, ?);
+
+pagosDeReserva:
+SELECT * FROM CvPago WHERE reservaUuid = ? ORDER BY pagadoMs;
+
+pagosEntre:
+SELECT * FROM CvPago WHERE pagadoMs >= :desde AND pagadoMs < :hasta ORDER BY pagadoMs;
+
+borrarPago:
+DELETE FROM CvPago WHERE uuid = ?;
+
+-- ── Cola de operaciones hechas sin internet ─────────────────────────────────
+encolarOperacion:
+INSERT OR REPLACE INTO CvOperacion(opUuid, tipo, entidadUuid, datosJson, creadaEn, orden, intentos, ultimoError)
+VALUES (?, ?, ?, ?, ?, ?, 0, NULL);
+
+operacionesPendientes:
+SELECT * FROM CvOperacion ORDER BY orden;
+
+contarOperaciones:
+SELECT COUNT(*) FROM CvOperacion;
+
+borrarOperacion:
+DELETE FROM CvOperacion WHERE opUuid = ?;
+
+marcarErrorOperacion:
+UPDATE CvOperacion SET intentos = intentos + 1, ultimoError = ? WHERE opUuid = ?;
+
+siguienteOrden:
+SELECT COALESCE(MAX(orden), 0) + 1 FROM CvOperacion;
+
+-- ── Al cerrar sesión ────────────────────────────────────────────────────────
+vaciarClientes:
+DELETE FROM CvCliente;
+
+vaciarReservas:
+DELETE FROM CvReserva;
+
+vaciarPagos:
+DELETE FROM CvPago;
+
+vaciarDatos:
+DELETE FROM CvDato WHERE clave <> 'dispositivo_uuid';

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Manifiesto de la librería: se fusiona con el de :composeAndroidApp -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Conexión con el servidor del negocio -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Notificaciones de reservas y pagos (Android 13 o más pide el permiso al abrir la app) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- El trabajo que revisa avisos con la app cerrada se vuelve a programar después de reiniciar el celular -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- Cámara solo para leer el QR de las reservas (la pide ZXing al escanear); no es obligatoria -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <application>
+        <!-- Revisa avisos cada ~15 minutos con la app cerrada (JobScheduler de Android) -->
+        <service
+            android:name="pe.canchavoley.app.android.TrabajoAvisos"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false" />
+
+        <!-- Lector QR de ZXing: también en vertical (por defecto la librería lo fija en horizontal) -->
+        <activity
+            android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:screenOrientation="fullSensor"
+            tools:replace="android:screenOrientation" />
+    </application>
+</manifest>
